@@ -11,26 +11,43 @@ cap = cv2.VideoCapture(0)
 
 
 # Read frame (BGR to RGB)
-ret, frame = cap.read()
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        print("없다!")
+        break
 # TODO: break the loop on error
 
-# 추론 실행 (BGR -> RGB)
-rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-results = model(rgb_frame)
+    # 추론 실행 (BGR -> RGB)
+    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    results = model(rgb_frame)
 
-# TODO: Boudning box 그리기
-for i, obj in enumerate(results.xyxy[0]):
-    # TODO: 인식결과를 표시하기 위한 좌표를 얻음
+    # TODO: Boudning box 그리기
+    for i, obj in enumerate(results.xyxy[0]):
+        x1, y1, x2, y2, conf, cls = obj
+        x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+        conf = float(conf)
+        cls = model.names[int(cls)]
+        # TODO: 인식결과를 표시하기 위한 좌표를 얻음
 
-    # TODO: 인식된 정확도(confidence)와 클래스를 label로 구성
+        # TODO: 인식된 정확도(confidence)와 클래스를 label로 구성
+        label = f"{cls}:{conf:.2f}"
 
-    # TODO: OpenCV를 이용해서 해당 좌표에 사각형과 text를 출력
-    obj_info = list(map(int, obj))
-    print(f"Object {i}: {model.names[obj_info[5]]}")
+        # TODO: OpenCV를 이용해서 해당 좌표에 사각형과 text를 출력
+        obj_info = list(map(int, obj))
+        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)  
+        cv2.putText(frame, label, (x1, y1 - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2, cv2.LINE_AA)
 
-# TODO: 화면 표시
+        print(f"Object {i}: {label}")
 
-# TODO: 종료를 위한 key 처리
+    # TODO: 화면 표시
+        cv2.imshow("YOLOv5 Camera",frame)
+
+    # TODO: 종료를 위한 key 처리
+        if cv2.waitKey(1) & 0XFF == ord('q'):
+            break
+
 
 cap.release()
 cv2.destroyAllWindows()
